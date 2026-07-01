@@ -1,1 +1,131 @@
+<!DOCTYPE html>
+<html lang="ka">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pro Business Analytics</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
 
+<div class="app-container">
+    <aside class="sidebar">
+        <div class="logo">
+            <i class="fa-solid fa-chart-line"></i>
+            <h2>BizAnalytics</h2>
+        </div>
+        <nav>
+            <button class="nav-btn active" onclick="openTab('margin', this)"><i class="fa-solid fa-tags"></i> Pricing & Margin</button>
+            <button class="nav-btn" onclick="openTab('cac_ltv', this)"><i class="fa-solid fa-users"></i> CAC & LTV</button>
+            <button class="nav-btn" onclick="openTab('inventory', this)"><i class="fa-solid fa-boxes-stacked"></i> Inventory</button>
+            <button class="nav-btn" onclick="openTab('employee', this)"><i class="fa-solid fa-user-tie"></i> Employee Cost</button>
+            <hr>
+            <button class="nav-btn history-btn" onclick="openTab('history', this); loadHistory();"><i class="fa-solid fa-database"></i> Database History</button>
+        </nav>
+    </aside>
+
+    <main class="main-content">
+        <header class="top-header">
+            <h1>კორპორატიული ანალიტიკის სისტემა</h1>
+            <p>პროექტი შექმნილია პითონისა და SQLite-ის ბაზაზე</p>
+        </header>
+
+        <div class="content-wrapper">
+            <div id="margin" class="tab-content active">
+                <div class="card">
+                    <h3>ფასწარმოქმნის და მოგების კალკულატორი</h3>
+                    <form onsubmit="calculate(event, 'margin')">
+                        <div class="input-row">
+                            <div class="input-group"><label>გასაყიდი ფასი (₾)</label><input type="number" id="m_price" required step="0.01"></div>
+                            <div class="input-group"><label>თვითღირებულება (₾)</label><input type="number" id="m_cost" required step="0.01"></div>
+                        </div>
+                        <button type="submit" class="btn-primary">მონაცემების დამუშავება <i class="fa-solid fa-arrow-right"></i></button>
+                    </form>
+                    <div class="result-box" id="res_margin"></div>
+                </div>
+            </div>
+
+            <div id="cac_ltv" class="tab-content">
+                <div class="card">
+                    <h3>მომხმარებლის მოზიდვის და ღირებულების (CAC/LTV) ანალიზი</h3>
+                    <form onsubmit="calculate(event, 'cac_ltv')">
+                        <div class="input-row">
+                            <div class="input-group"><label>მარკეტინგის ხარჯი (₾)</label><input type="number" id="c_marketing" required></div>
+                            <div class="input-group"><label>ახალი მომხმარებლები</label><input type="number" id="c_new_customers" required></div>
+                        </div>
+                        <div class="input-row">
+                            <div class="input-group"><label>საშ. შენაძენი (APV)</label><input type="number" id="c_apv" required></div>
+                            <div class="input-group"><label>სიხშირე (წელიწადში)</label><input type="number" id="c_freq" required></div>
+                            <div class="input-group"><label>სასიცოცხლო ციკლი (წლები)</label><input type="number" id="c_lifespan" required></div>
+                        </div>
+                        <button type="submit" class="btn-primary">მონაცემების დამუშავება <i class="fa-solid fa-arrow-right"></i></button>
+                    </form>
+                    <div class="result-box" id="res_cac_ltv"></div>
+                </div>
+            </div>
+
+            <div id="inventory" class="tab-content">
+                <div class="card">
+                    <h3>მარაგების მართვა და ბრუნვადობა</h3>
+                    <form onsubmit="calculate(event, 'inventory')">
+                        <div class="input-row">
+                            <div class="input-group"><label>გაყიდული პროდ. ღირ. (COGS)</label><input type="number" id="i_cogs" required></div>
+                            <div class="input-group"><label>საშუალო მარაგი</label><input type="number" id="i_avg_inv" required></div>
+                        </div>
+                        <div class="input-row">
+                            <div class="input-group"><label>დღიური გაყიდვები</label><input type="number" id="i_daily" required></div>
+                            <div class="input-group"><label>მოწოდების დრო (დღე)</label><input type="number" id="i_lead" required></div>
+                        </div>
+                        <button type="submit" class="btn-primary">მონაცემების დამუშავება <i class="fa-solid fa-arrow-right"></i></button>
+                    </form>
+                    <div class="result-box" id="res_inventory"></div>
+                </div>
+            </div>
+
+            <div id="employee" class="tab-content">
+                <div class="card">
+                    <h3>თანამშრომლის სრული დანახარჯის (Overhead) კალკულატორი</h3>
+                    <form onsubmit="calculate(event, 'employee')">
+                        <div class="input-row">
+                            <div class="input-group"><label>საბაზისო ხელფასი (₾)</label><input type="number" id="e_salary" required></div>
+                            <div class="input-group"><label>ბენეფიტები (₾)</label><input type="number" id="e_benefits" required></div>
+                        </div>
+                        <div class="input-row">
+                            <div class="input-group"><label>გადასახადები (₾)</label><input type="number" id="e_taxes" required></div>
+                            <div class="input-group"><label>ზედნადები ხარჯები (₾)</label><input type="number" id="e_overhead" required></div>
+                        </div>
+                        <button type="submit" class="btn-primary">მონაცემების დამუშავება <i class="fa-solid fa-arrow-right"></i></button>
+                    </form>
+                    <div class="result-box" id="res_employee"></div>
+                </div>
+            </div>
+
+            <div id="history" class="tab-content">
+                <div class="card history-card">
+                    <h3><i class="fa-solid fa-server"></i> SQLite მონაცემთა ბაზა (ბოლო ოპერაციები)</h3>
+                    <div class="table-responsive">
+                        <table class="db-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>ოპერაციის ტიპი</th>
+                                    <th>მიღებული შედეგი</th>
+                                    <th>თარიღი</th>
+                                </tr>
+                            </thead>
+                            <tbody id="history-tbody">
+                                </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+</div>
+
+<script src="{{ url_for('static', filename='func.js') }}"></script>
+</body>
+</html>
